@@ -13,7 +13,7 @@ import (
 
 func IndexView(w http.ResponseWriter, r *http.Request) {
 	html := loadHtml("./views/index.html")
-	w.Write(html)
+	_, _ = w.Write(html)
 }
 
 // Upload 上传
@@ -21,7 +21,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	//GET
 	// fmt.Println(r.Method)
 	if r.Method == "GET" {
-		w.Write(loadHtml("./views/upload.html"))
+		_, _ = w.Write(loadHtml("./views/upload.html"))
 		return
 	}
 	//POST
@@ -29,24 +29,24 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		f, h, err := r.FormFile("file")
 		if err != nil {
 			//有错误
-			w.Write([]byte("文件上传有误 :" + err.Error()))
+			_, _ = w.Write([]byte("文件上传有误 :" + err.Error()))
 			return
 		}
 		t := h.Header.Get("Content-Type")
 		log.Println(t)
 		if !strings.Contains(t, "image") {
-			io.WriteString(w, "<html> <a href=\"/upload\">请上传图片</a><html>")
+			_, _ = io.WriteString(w, "<html> <a href=\"/upload\">请上传图片</a><html>")
 			return
 		}
-		os.Mkdir("./static", 0666) //以 main.go 作为相对路径
+		_ = os.Mkdir("./static", 0666) //以 main.go 作为相对路径
 		out, err := os.Create("./static/" + h.Filename)
 		if err != nil {
-			io.WriteString(w, "文件创建失败："+err.Error())
+			_, _ = io.WriteString(w, "文件创建失败："+err.Error())
 			return
 		}
 		_, err = io.Copy(out, f)
 		if err != nil {
-			io.WriteString(w, "文件保存失败："+err.Error())
+			_, _ = io.WriteString(w, "文件保存失败："+err.Error())
 			return
 		}
 		//io.WriteString(w, "/static/"+h.Filename) //web服务器 / 以 main.go 作为绝对路径的开始
@@ -57,7 +57,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 
 // ImageView 返回指定的图片
 func ImageView(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm() //把url 或者 form 表单的数据解析到对应的容器 r.From
+	_ = r.ParseForm() //把url 或者 form 表单的数据解析到对应的容器 r.From
 	name := r.Form.Get("name")
 	// fmt.Println(name)
 	f, err := os.Open("./static/" + name)
@@ -67,23 +67,23 @@ func ImageView(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 	w.Header().Set("Content-Type", "image")
-	io.Copy(w, f)
+	_, _ = io.Copy(w, f)
 }
 
 //
 func DetailView(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	_ = r.ParseForm()
 	name := r.Form.Get("name")
 	html := loadHtml("./views/detail.html")
 	html = bytes.Replace(html, []byte("@src"), []byte("/image?name="+name), 1)
-	w.Write(html)
+	_, _ = w.Write(html)
 }
 
 func ListView(w http.ResponseWriter, r *http.Request) {
 	html := loadHtml("./views/list.html")
 	names, err := ioutil.ReadDir("./static")
 	if err != nil {
-		w.Write([]byte("errors"))
+		_, _ = w.Write([]byte("errors"))
 		return
 	}
 	temp := ""
@@ -91,7 +91,7 @@ func ListView(w http.ResponseWriter, r *http.Request) {
 		temp += `<li><a href="/detail?name=` + names[i].Name() + `"><img src="/image?name=` + names[i].Name() + `" alt="未发现"></a></li>`
 	}
 	html = bytes.Replace(html, []byte("@html"), []byte(temp), 1)
-	w.Write(html)
+	_, _ = w.Write(html)
 }
 
 // loadHtml 通用加载html
@@ -117,5 +117,5 @@ func main() {
 	http.HandleFunc("/detail", DetailView)
 	http.HandleFunc("/list", ListView)
 	log.Println("run .. ")
-	http.ListenAndServe(":8080", nil)
+	_ = http.ListenAndServe(":8080", nil)
 }

@@ -5,6 +5,7 @@ package main
 import (
 	"errors"
 	"log"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -63,13 +64,21 @@ func InfoList() ([]Info, error) {
 
 // InfoDrop 删除
 func InfoDrop(id int64) error {
+	//查询数据库path文件名
+	mod, _ := InfoGet(id)
 	result, err := Db.Exec("delete from info where id =?", id)
 	if err != nil {
 		return err
 	}
 	rows, _ := result.RowsAffected()
 	if rows != 1 {
-		return errors.New("删除失败")
+		return errors.New("数据库删除失败")
+	}
+	//删除文件
+	err = os.Remove("."+mod.Path)
+	if err != nil {
+		log.Println("本地删除失败", err.Error())
+		return errors.New("本地删除失败")
 	}
 	return nil
 }
